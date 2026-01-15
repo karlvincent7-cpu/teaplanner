@@ -888,19 +888,30 @@
         // Randomize week
         function randomizeWeek() {
             teaData.weekAssignments = {};
-            const usedTeas = []; // Track which teas have been used
+            const usedTeas = []; // Track which teas have been used across the entire week
             
             days.forEach(day => {
                 if (day === 'Sunday') {
                     if (teaData.sunday.length > 0) {
-                        const randomIndex = Math.floor(Math.random() * teaData.sunday.length);
-                        teaData.weekAssignments[day] = teaData.sunday[randomIndex];
+                        // Get Sunday teas that haven't been used this week
+                        let availableSundayTeas = teaData.sunday.filter(tea => !usedTeas.includes(tea));
+                        
+                        // If all Sunday teas have been used, allow any Sunday tea
+                        if (availableSundayTeas.length === 0) {
+                            availableSundayTeas = teaData.sunday;
+                        }
+                        
+                        const randomIndex = Math.floor(Math.random() * availableSundayTeas.length);
+                        const selectedTea = availableSundayTeas[randomIndex];
+                        
+                        teaData.weekAssignments[day] = selectedTea;
+                        usedTeas.push(selectedTea);
                     } else {
                         teaData.weekAssignments[day] = 'No Sunday teas available';
                     }
                 } else {
                     if (teaData.regular.length > 0) {
-                        // Get teas that haven't been used yet
+                        // Get teas that haven't been used yet this week
                         let availableTeas = teaData.regular.filter(tea => !usedTeas.includes(tea));
                         
                         // If all teas have been used (more days than unique teas), reset
