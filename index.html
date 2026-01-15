@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Weekly Tea Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: #000000;
+            min-height: 100vh;
+            color: #ffffff;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding-bottom: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: #1a1a1a;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        h1 {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        /* Burger Menu */
+        .burger {
+            width: 28px;
+            height: 22px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 101;
+        }
+
+        .burger span {
+            width: 100%;
+            height: 2px;
+            background: #ffffff;
+            border-radius: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .burger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(7px, 7px);
+        }
+
+        .burger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .burger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -7px);
+        }
+
+        /* Side Menu */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 280px;
+            height: 100vh;
+            background: #1a1a1a;
+            transition: right 0.3s ease;
+            z-index: 99;
+            padding-top: 80px;
+            border-left: 1px solid #333;
+        }
+
+        .side-menu.active {
+            right: 0;
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 98;
+        }
+
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .menu-item {
+            padding: 20px 24px;
+            color: #ffffff;
+            cursor: pointer;
+            border-bottom: 1px solid #333;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+
+        .menu-item:active {
+            background: #2a2a2a;
+        }
+
+        .menu-item.active {
+            background: #2a2a2a;
+            color: #4CAF50;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Week View */
+        .week-view {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .day-card {
+            background: #1a1a1a;
+            padding: 18px 20px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .day-card.today {
+            background: #1a2e1a;
+            border: 1px solid #4CAF50;
+        }
+
+        .day-card.sunday {
+            background: #2a1a1a;
+            border: 1px solid #555;
+        }
+
+        .day-card.today.sunday {
+            background: #1a2e1a;
+            border: 1px solid #4CAF50;
+        }
+
+        .day-info {
+            flex: 1;
+        }
+
+        .day-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .day-name {
+            font-weight: 600;
+            font-size: 0.9em;
+            color: #999;
+        }
+
+        .day-card.today .day-name {
+            color: #4CAF50;
+        }
+
+        .day-date {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .day-card.today .day-date {
+            color: #4CAF50;
+        }
+
+        .tea-name {
+            color: #ffffff;
+            font-size: 1.05em;
+            font-weight: 500;
+        }
+
+        .refresh-btn {
+            width: 100%;
+            padding: 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .refresh-btn:active {
+            background: #45a049;
+            transform: scale(0.98);
+        }
+
+        /* Manage Section */
+        .tea-input-section {
+            margin-bottom: 20px;
+        }
+
+        .tea-input-section h2 {
+            color: #ffffff;
+            font-size: 1.2em;
+            font-weight: 600;
+            padding: 16px 20px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0;
+            transition: background 0.2s;
+        }
+
+        .tea-input-section h2:active {
+            background: #2a2a2a;
+        }
+
+        .tea-input-section h2::after {
+            content: '▼';
+            font-size: 0.8em;
+            transition: transform 0.3s;
+            color: #666;
+        }
+
+        .tea-input-section h2.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .section-content.expanded {
+            max-height: 10000px;
+            padding-top: 16px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 14px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+        }
+
+        .input-group input::placeholder {
+            color: #666;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .bulk-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 14px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            resize: vertical;
+            margin-bottom: 16px;
+        }
+
+        .bulk-textarea::placeholder {
+            color: #666;
+        }
+
+        .bulk-textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .bulk-add-info {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .bulk-add-btn {
+            width: 100%;
+            padding: 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .bulk-add-btn:active {
+            background: #45a049;
+            transform: scale(0.98);
+        }
+
+        .add-btn {
+            padding: 14px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .add-btn:active {
+            background: #45a049;
+        }
+
+        .tea-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .tea-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+
+        .tea-item-name {
+            font-size: 15px;
+            color: #ffffff;
+            flex: 1;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .tea-item-name:hover {
+            background: #2a2a2a;
+        }
+
+        .tea-item-input {
+            flex: 1;
+            padding: 4px 8px;
+            background: #2a2a2a;
+            border: 1px solid #4CAF50;
+            border-radius: 4px;
+            font-size: 15px;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            outline: none;
+        }
+
+        .tea-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .remove-btn, .restore-btn {
+            padding: 8px 14px;
+            background: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .restore-btn {
+            background: #4CAF50;
+        }
+
+        .remove-btn:active {
+            background: #b71c1c;
+        }
+
+        .restore-btn:active {
+            background: #45a049;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header with Burger Menu -->
+        <div class="header">
+            <h1>Weekly Tea Planner</h1>
+            <div class="burger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+
+        <!-- Menu Overlay -->
+        <div class="menu-overlay" onclick="toggleMenu()"></div>
+
+        <!-- Side Menu -->
+        <div class="side-menu">
+            <div class="menu-item active" onclick="switchTab('week')">Week View</div>
+            <div class="menu-item" onclick="switchTab('manage')">Manage Teas</div>
+            <div class="menu-item" onclick="switchTab('bulk-add')">Bulk Add Teas</div>
+            <div class="menu-item" onclick="switchTab('deleted')">Deleted Teas</div>
+        </div>
+
+        <!-- Week View Tab -->
+        <div id="week-tab" class="tab-content active">
+            <div class="week-view" id="weekView"></div>
+            <button class="refresh-btn" onclick="randomizeWeek()">Randomize Week</button>
+        </div>
+
+        <!-- Manage Teas Tab -->
+        <div id="manage-tab" class="tab-content">
+            <div class="tea-input-section">
+                <h2 class="collapsed" onclick="toggleSection(this)">Weekday Teas</h2>
+                <div class="section-content">
+                    <div class="input-group">
+                        <input type="text" id="regularTeaInput" placeholder="Enter tea name..." onkeypress="handleKeyPress(event, 'regular')">
+                        <button class="add-btn" onclick="addTea('regular')">Add</button>
+                    </div>
+                    <div class="tea-list" id="regularTeaList"></div>
+                </div>
+            </div>
+
+            <div class="tea-input-section">
+                <h2 class="collapsed" onclick="toggleSection(this)">Sunday Teas</h2>
+                <div class="section-content">
+                    <div class="input-group">
+                        <input type="text" id="sundayTeaInput" placeholder="Enter Sunday tea..." onkeypress="handleKeyPress(event, 'sunday')">
+                        <button class="add-btn" onclick="addTea('sunday')">Add</button>
+                    </div>
+                    <div class="tea-list" id="sundayTeaList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Add Tab -->
+        <div id="bulk-add-tab" class="tab-content">
+            <div class="tea-input-section">
+                <h2 style="cursor: default; padding: 0; background: none; border: none; margin-bottom: 16px;">Bulk Add Weekday Teas</h2>
+                <p class="bulk-add-info">Enter multiple teas separated by commas. Each tea will be added to the weekday list. Leading and trailing spaces will be automatically removed.</p>
+                <textarea 
+                    id="bulkTeaInput" 
+                    class="bulk-textarea" 
+                    placeholder="e.g. Pizza, Pasta, Burgers, Fish and chips, Tacos"></textarea>
+                <button class="bulk-add-btn" onclick="bulkAddTeas()">Add All Teas</button>
+            </div>
+        </div>
+
+        <!-- Deleted Teas Tab -->
+        <div id="deleted-tab" class="tab-content">
+            <div class="tea-input-section">
+                <h2>Deleted Teas</h2>
+                <p style="color: #666; margin-bottom: 15px;">Restore teas back to weekday list</p>
+                <div class="tea-list" id="deletedTeaList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize data structure
+        let teaData = {
+            regular: [],
+            sunday: [],
+            deleted: [],
+            weekAssignments: {}
+        };
+
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+        // Capitalize each word in a string
+        function capitalizeWords(str) {
+            return str
+                .split(' ')
+                .map(word => {
+                    if (word.length === 0) return word;
+                    // Keep words in parentheses as they are (like "Indian" or "Chinese")
+                    if (word.startsWith('(') && word.length > 1) {
+                        return '(' + word.charAt(1).toUpperCase() + word.slice(2);
+                    }
+                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                })
+                .join(' ');
+        }
+
+        // Get date for a specific day
+        function getDateForDay(dayIndex) {
+            const today = new Date();
+            const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+            
+            // Convert to Monday = 0, Sunday = 6
+            const currentDayAdjusted = currentDay === 0 ? 6 : currentDay - 1;
+            
+            // Calculate days difference
+            let daysToAdd = dayIndex - currentDayAdjusted;
+            if (daysToAdd < 0) {
+                daysToAdd += 7;
+            }
+            
+            const targetDate = new Date(today);
+            targetDate.setDate(today.getDate() + daysToAdd);
+            
+            const day = targetDate.getDate();
+            const month = targetDate.toLocaleDateString('en-GB', { month: 'short' });
+            
+            return `${day} ${month}`;
+        }
+
+        // Check if a day is today
+        function isToday(dayIndex) {
+            const today = new Date();
+            const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+            const currentDayAdjusted = currentDay === 0 ? 6 : currentDay - 1;
+            return dayIndex === currentDayAdjusted;
+        }
+
+        // Load data from localStorage
+        function loadData() {
+            const saved = localStorage.getItem('teaRandomizerData');
+            if (saved) {
+                teaData = JSON.parse(saved);
+                
+                // Capitalize all existing tea names
+                teaData.regular = teaData.regular.map(tea => capitalizeWords(tea));
+                teaData.sunday = teaData.sunday.map(tea => capitalizeWords(tea));
+                teaData.deleted = teaData.deleted.map(tea => capitalizeWords(tea));
+                
+                // Update week assignments
+                Object.keys(teaData.weekAssignments).forEach(day => {
+                    teaData.weekAssignments[day] = capitalizeWords(teaData.weekAssignments[day]);
+                });
+                
+                saveData(); // Save the capitalized versions
+            } else {
+                // Default teas to start with
+                teaData = {
+                    regular: [
+                        'Tortilla Pizzas',
+                        'Pizzas',
+                        'Meatballs',
+                        'Honey Chilli Chicken',
+                        'Enchiladas',
+                        'Cajun Chicken Burgers',
+                        'Chicken Pasta Bake',
+                        'Bolognese Pasta Bake',
+                        'Fajitas',
+                        'Loaded Nachos',
+                        'Fish Fingers & Chips',
+                        'Bolognese Baguettes',
+                        'Chicken Pasta',
+                        'Chilli Quesadillas',
+                        'Chicken Quesadillas',
+                        'Burritos',
+                        'Burgers',
+                        'Lasagna',
+                        'Bolognese Bake',
+                        'Chicken Casserole',
+                        'Steak Casserole',
+                        'Chicken Curry (Indian)',
+                        'Chicken Curry (Chinese)',
+                        'Lemon Chicken',
+                        'Nando\'s Chicken Sliders',
+                        'Chilli Beef Sliders',
+                        'Chilli And Rice',
+                        'Naan Bread Pizzas',
+                        'Breakfast Tea',
+                        'Fish And Chips'
+                    ],
+                    sunday: [
+                        'Chicken Dinner',
+                        'Beef Dinner',
+                        'Beef Stew',
+                        'Chicken Casserole',
+                        'Sausage Casserole'
+                    ],
+                    deleted: [],
+                    weekAssignments: {}
+                };
+                saveData();
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('teaRandomizerData', JSON.stringify(teaData));
+        }
+
+        // Toggle burger menu
+        function toggleMenu() {
+            const burger = document.querySelector('.burger');
+            const menu = document.querySelector('.side-menu');
+            const overlay = document.querySelector('.menu-overlay');
+            
+            burger.classList.toggle('active');
+            menu.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        // Toggle section expand/collapse
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            header.classList.toggle('collapsed');
+            content.classList.toggle('expanded');
+        }
+
+        // Switch between tabs
+        function switchTab(tabName) {
+            // Close menu
+            toggleMenu();
+            
+            // Update menu items
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            if (tabName === 'manage') {
+                renderTeaLists();
+            } else if (tabName === 'deleted') {
+                renderDeletedList();
+            } else if (tabName === 'week') {
+                renderWeekView();
+            }
+            // bulk-add doesn't need special rendering
+        }
+
+        // Add tea
+        function addTea(type) {
+            const inputId = type === 'regular' ? 'regularTeaInput' : 'sundayTeaInput';
+            const input = document.getElementById(inputId);
+            const teaName = capitalizeWords(input.value.trim());
+            
+            if (teaName && !teaData[type].includes(teaName)) {
+                teaData[type].push(teaName);
+                saveData();
+                input.value = '';
+                renderTeaLists();
+            }
+        }
+
+        // Bulk add teas from comma-separated list
+        function bulkAddTeas() {
+            const input = document.getElementById('bulkTeaInput');
+            
+            if (!input) {
+                alert('Error: Could not find input field');
+                return;
+            }
+            
+            const rawText = input.value;
+            
+            if (!rawText.trim()) {
+                alert('Please enter at least one tea name.');
+                return;
+            }
+            
+            try {
+                // Split by comma and clean up each tea name
+                const allTeas = rawText
+                    .split(',')
+                    .map(tea => capitalizeWords(tea.trim()))
+                    .filter(tea => tea.length > 0);
+                
+                // Create lowercase version of existing teas for case-insensitive comparison
+                const existingTeasLower = teaData.regular.map(tea => tea.toLowerCase());
+                
+                // Filter out duplicates (case-insensitive)
+                const newTeas = allTeas.filter(tea => !existingTeasLower.includes(tea.toLowerCase()));
+                const duplicates = allTeas.length - newTeas.length;
+                
+                if (newTeas.length > 0) {
+                    teaData.regular.push(...newTeas);
+                    saveData();
+                    input.value = '';
+                    
+                    // Show success feedback with details
+                    let message = `Successfully added ${newTeas.length} tea${newTeas.length === 1 ? '' : 's'}!`;
+                    if (duplicates > 0) {
+                        message += `\n\n${duplicates} duplicate${duplicates === 1 ? ' was' : 's were'} skipped.`;
+                    }
+                    alert(message);
+                } else {
+                    alert(`No new teas to add. All ${allTeas.length} tea${allTeas.length === 1 ? '' : 's'} already exist in your list.`);
+                }
+            } catch (error) {
+                alert('An error occurred: ' + error.message);
+            }
+        }
+
+        // Handle Enter key press
+        function handleKeyPress(event, type) {
+            if (event.key === 'Enter') {
+                addTea(type);
+            }
+        }
+
+        // Remove tea
+        function removeTea(type, index) {
+            const tea = teaData[type][index];
+            teaData[type].splice(index, 1);
+            teaData.deleted.push(tea);
+            saveData();
+            renderTeaLists();
+        }
+
+        // Edit tea inline
+        function editTea(type, index, element) {
+            const currentName = teaData[type][index];
+            const teaItem = element.parentElement;
+            
+            // Create input field
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'tea-item-input';
+            input.value = currentName;
+            
+            // Replace the span with input
+            teaItem.replaceChild(input, element);
+            input.focus();
+            input.select();
+            
+            // Save on Enter or blur
+            const saveEdit = () => {
+                const newName = capitalizeWords(input.value.trim());
+                if (newName && newName !== currentName) {
+                    teaData[type][index] = newName;
+                    saveData();
+                }
+                renderTeaLists();
+            };
+            
+            input.addEventListener('blur', saveEdit);
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    saveEdit();
+                }
+            });
+        }
+
+        // Restore tea
+        function restoreTea(index) {
+            const tea = teaData.deleted[index];
+            teaData.deleted.splice(index, 1);
+            teaData.regular.push(tea);
+            saveData();
+            renderDeletedList();
+        }
+
+        // Render tea lists in manage tab
+        function renderTeaLists() {
+            const regularList = document.getElementById('regularTeaList');
+            const sundayList = document.getElementById('sundayTeaList');
+            
+            regularList.innerHTML = teaData.regular.length === 0 
+                ? '<div class="empty-state">No weekday teas added yet</div>'
+                : teaData.regular.map((tea, index) => `
+                    <div class="tea-item">
+                        <span class="tea-item-name" onclick="editTea('regular', ${index}, this)">${tea}</span>
+                        <button class="remove-btn" onclick="removeTea('regular', ${index})">Remove</button>
+                    </div>
+                `).join('');
+            
+            sundayList.innerHTML = teaData.sunday.length === 0 
+                ? '<div class="empty-state">No Sunday teas added yet</div>'
+                : teaData.sunday.map((tea, index) => `
+                    <div class="tea-item">
+                        <span class="tea-item-name" onclick="editTea('sunday', ${index}, this)">${tea}</span>
+                        <button class="remove-btn" onclick="removeTea('sunday', ${index})">Remove</button>
+                    </div>
+                `).join('');
+        }
+
+        // Render deleted teas list
+        function renderDeletedList() {
+            const deletedList = document.getElementById('deletedTeaList');
+            
+            deletedList.innerHTML = teaData.deleted.length === 0 
+                ? '<div class="empty-state">No deleted teas</div>'
+                : teaData.deleted.map((tea, index) => `
+                    <div class="tea-item">
+                        <span class="tea-item-name">${tea}</span>
+                        <button class="restore-btn" onclick="restoreTea(${index})">Restore</button>
+                    </div>
+                `).join('');
+        }
+
+        // Randomize week
+        function randomizeWeek() {
+            teaData.weekAssignments = {};
+            
+            days.forEach(day => {
+                if (day === 'Sunday') {
+                    if (teaData.sunday.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * teaData.sunday.length);
+                        teaData.weekAssignments[day] = teaData.sunday[randomIndex];
+                    } else {
+                        teaData.weekAssignments[day] = 'No Sunday teas available';
+                    }
+                } else {
+                    if (teaData.regular.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * teaData.regular.length);
+                        teaData.weekAssignments[day] = teaData.regular[randomIndex];
+                    } else {
+                        teaData.weekAssignments[day] = 'No teas available';
+                    }
+                }
+            });
+            
+            saveData();
+            renderWeekView();
+        }
+
+        // Render week view
+        function renderWeekView() {
+            const weekView = document.getElementById('weekView');
+            
+            // If no assignments exist, create them
+            if (Object.keys(teaData.weekAssignments).length === 0) {
+                randomizeWeek();
+                return;
+            }
+            
+            weekView.innerHTML = days.map((day, index) => {
+                const date = getDateForDay(index);
+                const isTodayDay = isToday(index);
+                const isSunday = day === 'Sunday';
+                const isSaturday = day === 'Saturday';
+                const teaName = teaData.weekAssignments[day] || 'No tea assigned';
+                const displayName = isSaturday ? `${teaName} (or takeaway!)` : teaName;
+                
+                return `
+                <div class="day-card ${isTodayDay ? 'today' : ''} ${isSunday ? 'sunday' : ''}">
+                    <div class="day-info">
+                        <div class="day-header">
+                            <span class="day-name">${day}</span>
+                            <span class="day-date">${date}</span>
+                        </div>
+                        <div class="tea-name">${displayName}</div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        // Initialize app
+        loadData();
+        renderWeekView();
+    </script>
+</body>
+</html>
